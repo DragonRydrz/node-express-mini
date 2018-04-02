@@ -1,13 +1,17 @@
 const express = require('express');
-
+const bodyParser = require('body-parser');
 const db = require('./data/db.js');
 
 const server = express();
 
+server.use(bodyParser.json());
+
 const port = 5000;
 
 server.get('/', function(req, res) {
-  res.send({ api: 'Running...' });
+  res.send({
+    api: 'Running...'
+  });
 });
 
 // const newUser = {
@@ -70,7 +74,10 @@ server.delete('/api/users/:id', (req, res) => {
 server.put('/api/users/:id', (req, res) => {
   const { id } = req.params;
   const { name, bio } = req.body;
-  const user = { name, bio };
+  const user = {
+    name,
+    bio
+  };
   db
     .update(id, user)
     .then(updatedUser => {
