@@ -1,9 +1,13 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const db = require('./data/db.js');
+const morgan = require('morgan');
+const helmet = require('helmet');
 
 const server = express();
 
+server.use(morgan('dev'));
+server.use(helmet());
 server.use(bodyParser.json());
 
 const port = 5000;
@@ -21,12 +25,20 @@ server.get('/', function(req, res) {
 
 server.post('/api/users', (req, res) => {
   console.log(req.body);
-  const user = req.body;
-  // if (!user.name || user.bio) {
-  //   res.status(400).json({ error: 'Name and Bio are required.' });
-  // }
+  const { name, bio } = req.body;
+  const newUser = {
+    name,
+    bio
+  };
+
+  if (!name || !bio) {
+    res.status(400).json({
+      error: 'Name and Bio are required.'
+    });
+  }
+
   db
-    .insert(user)
+    .insert(newUser)
     .then(user => {
       res.json(user);
     })
@@ -61,10 +73,19 @@ server.get('/api/users/:id', (req, res) => {
 
 server.delete('/api/users/:id', (req, res) => {
   const { id } = req.params;
+
   db
-    .remove(id)
+    .findById(id)
     .then(user => {
-      res.json(user[0]);
+      const deletedUser = user;
+      db
+        .remove(id)
+        .then(user => {
+          res.json(deletedUser[0]);
+        })
+        .catch(error => {
+          res.status(500).json(error);
+        });
     })
     .catch(error => {
       res.status(500).json(error);
@@ -78,10 +99,20 @@ server.put('/api/users/:id', (req, res) => {
     name,
     bio
   };
+
   db
     .update(id, user)
-    .then(updatedUser => {
-      res.json(updatedUser);
+    .then(count => {
+      if (count > 0) {
+        db
+          .findById(id)
+          .then(user => {
+            res.json(user[0]);
+          })
+          .catch(error => {
+            res.status(500).json(error);
+          });
+      }
     })
     .catch(error => {
       res.status(500).json(error);
