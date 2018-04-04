@@ -3,6 +3,7 @@ const bodyParser = require('body-parser');
 const db = require('./data/db.js');
 // const morgan = require('morgan');
 const helmet = require('helmet');
+const cors = require('cors');
 
 const userRouter = require('./users/userRouter.js');
 
@@ -20,6 +21,7 @@ function logger(req, res, next) {
 server.use(logger);
 // server.use(morgan('dev'));
 server.use(helmet());
+server.use(cors());
 server.use(bodyParser.json());
 
 server.use('/api/users', userRouter);
